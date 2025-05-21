@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Category {
+  id      String    @id @default(cuid())
+  name    String
+  Product Product[]
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  price          Float
+  status         OrderStatus
+  customerId     String
+  storeHistoryId String
+  User           User         @relation(fields: [customerId], references: [id])
+  StoreHistory   StoreHistory @relation(fields: [storeHistoryId], references: [id])
+  OrderItem      OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  Order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id         String      @id @default(cuid())
+  name       String
+  stock      Int
+  quantity   Int
+  price      Float
+  minStock   Int
+  createdAt  DateTime    @default(now())
+  storeId    String
+  categoryId String
+  OrderItem  OrderItem[]
+  Category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  Store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Store {
+  id                       String         @id @default(cuid())
+  ownerId                  String
+  name                     String
+  location                 String
+  workHours                String
+  status                   Boolean
+  profit                   Float
+  Product                  Product[]
+  User_Store_ownerIdToUser User           @relation("Store_ownerIdToUser", fields: [ownerId], references: [id], onDelete: Cascade)
+  StoreHistory             StoreHistory[]
+  User_User_storeIdToStore User[]         @relation("User_storeIdToStore")
+}
+
+model StoreHistory {
+  id      String  @id @default(cuid())
+  storeId String
+  Order   Order[]
+  Store   Store   @relation(fields: [storeId], references: [id])
+}
+
+model User {
+  id                        String   @id @default(cuid())
+  email                     String
+  name                      String
+  avatar                    String
+  phoneNumber               String?
+  location                  String?
+  role                      UserRole @default(CUSTOMER)
+  clerkId                   String
+  createdAt                 DateTime @default(now())
+  updateAt                  DateTime
+  storeId                   String?
+  Order                     Order[]
+  Store_Store_ownerIdToUser Store[]  @relation("Store_ownerIdToUser")
+  Store_User_storeIdToStore Store?   @relation("User_storeIdToStore", fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  OWNER
+  STAFF
+  CUSTOMER
+}
