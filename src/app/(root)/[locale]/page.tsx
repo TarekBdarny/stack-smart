@@ -1,3 +1,4 @@
+import { syncUser } from "@/actions/user.action";
 import { Button } from "@/components/ui/button";
 import {
   SignedIn,
@@ -6,7 +7,10 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
-export default function Home() {
+import { currentUser } from "@clerk/nextjs/server";
+export default async function Home() {
+  const user = await currentUser();
+  if (user) syncUser();
   return (
     <>
       <SignedOut>

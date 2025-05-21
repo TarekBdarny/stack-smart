@@ -73,15 +73,15 @@ model StoreHistory {
 
 model User {
   id                        String   @id @default(cuid())
-  email                     String
+  email                     String @unique
   name                      String
   avatar                    String
   phoneNumber               String?
   location                  String?
   role                      UserRole @default(CUSTOMER)
-  clerkId                   String
+  clerkId                   String @unique
   createdAt                 DateTime @default(now())
-  updateAt                  DateTime
+  updateAt                  DateTime @updatedAt
   storeId                   String?
   Order                     Order[]
   Store_Store_ownerIdToUser Store[]  @relation("Store_ownerIdToUser")
