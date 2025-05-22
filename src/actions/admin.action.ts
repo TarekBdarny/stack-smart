@@ -61,7 +61,21 @@ export const rejectStoreRequest = async (
     console.log("error in reject store request", error);
   }
 };
-
+export const getAllRequestedStores = async () => {
+  try {
+    const stores = await prisma.storeRequest.findMany({
+      where: {
+        status: "PENDING",
+      },
+      include: {
+        requester: true,
+      },
+    });
+    return { success: true, data: stores ? stores : [] };
+  } catch (error) {
+    console.log("error in get all requested stores", error);
+  }
+};
 //helper
 export const createStore = async (storeData: StoreData) => {
   try {

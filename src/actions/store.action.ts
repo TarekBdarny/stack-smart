@@ -1,7 +1,9 @@
 "use server";
 
+import { isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { StoreData } from "@/types";
+import { getAuthUser } from "./user.action";
 
 export const syncStore = async () => {};
 export const getStoreById = async (storeId: string) => {
@@ -120,7 +122,10 @@ export const getRandomStore = async () => {
 
 export const requestToOpenStore = async (storeData: StoreData) => {
   try {
+    const authUser = await getAuthUser();
     if (!storeData.requesterId) return;
+    if (isAdmin(authUser))
+      return { success: false, error: "Admins cannot request a store" };
     const user = await prisma.user.findUnique({
       where: {
         id: storeData.requesterId,
