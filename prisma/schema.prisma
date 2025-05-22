@@ -8,25 +8,54 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 model User {
-  id                        String   @id @default(cuid())
-  email                     String @unique
+  id                        String         @id @default(cuid())
+  email                     String         @unique
   name                      String
-  avatar                    String
-  phoneNumber               String? @unique
+  avatar                    String?
+  phoneNumber               String?        @unique
   location                  String?
-  role                      UserRole @default(CUSTOMER)
-  clerkId                   String @unique
-  createdAt                 DateTime @default(now())
-  updateAt                  DateTime @updatedAt
+  role                      UserRole       @default(CUSTOMER)
+  clerkId                   String         @unique
+  createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
   storeId                   String?
+  
+  // Relations
   Order                     Order[]
-  ownedStores  Store[]  @relation("StoreOwner")
-  // If also a staff member:
-  assignedStore       Store?   @relation("StoreStaff", fields: [storeId], references: [id], onDelete: Cascade)
-  storeRequests StoreRequest[] @relation("UserRequests")
-  reviewedRequests StoreRequest[] @relation("RequestReviewer")
-
+  ownedStores               Store[]        @relation("StoreOwner")
+  assignedStore             Store?         @relation("StoreStaff", fields: [storeId], references: [id], onDelete: Cascade)
+  storeRequests             StoreRequest[] @relation("UserRequests")
+  reviewedRequests          StoreRequest[] @relation("RequestReviewer")
+  
+  // New subscription relation - this was missing the proper relation definition
+  subscriptions             Subscription[] @relation("UserSubscriptions")
+  
+  @@index([email])
+  @@index([clerkId])
 }
+
+
+model Store {
+  id                       String         @id @default(cuid())
+  ownerId                  String
+  name                     String         @unique
+  location                 String
+  workHours                String
+  isOpen                   Boolean        @default(true)
+  profit                   Float          @default(0)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  
+  // Relations
+  Product                  Product[]
+  owner                    User           @relation("StoreOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  staff                    User[]         @relation("StoreStaff")
+  StoreHistory             StoreHistory[]
+  
+  @@index([ownerId])
+  @@index([isOpen])
+}
+
 
 model StoreRequest {
   id           String        @id @default(cuid())
@@ -47,7 +76,42 @@ model StoreRequest {
 }
 
 
-
+model Plan {
+  id                    String   @id @default(cuid())
+  name                  String   @unique // "Free", "Tier 1", "Tier 2", etc.
+  type                  PlanType @unique
+  price                 Float    // Monthly price
+  maxStores             Int      // Maximum stores allowed
+  maxProductsPerStore   Int?     // Optional: limit products per store
+  maxStaffPerStore      Int?     // Optional: limit staff per store
+  features              Json?    // JSON field for additional features
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relations
+  subscriptions         Subscription[]
+}
+model Subscription {
+  id                    String     @id @default(cuid())
+  userId                String
+  planId                String
+  status                PlanStatus @default(ACTIVE)
+  startDate             DateTime   @default(now())
+  endDate               DateTime?  // Null for active subscriptions
+  cancelledAt           DateTime?
+  stripeCustomerId      String?    // For Stripe integration
+  stripeSubscriptionId  String?    // For Stripe integration
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  
+  // Relations
+  user                  User       @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  plan                  Plan       @relation(fields: [planId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+}
 
 model Category {
   id      String    @id @default(cuid())
@@ -92,23 +156,6 @@ model Product {
   Store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
-model Store {
-  id                       String         @id @default(cuid())
-  ownerId                  String
-  name                     String @unique
-  location                 String
-  workHours                String
-  isOpen                   Boolean
-  profit                   Float @default(0)
-  Product                  Product[]
-  // Owner relation:
-
-  owner        User        @relation("StoreOwner", fields: [ownerId], references: [id])
-
-  // Staff relation:
-  staff        User[]      @relation("StoreStaff")
-  StoreHistory             StoreHistory[]
-}
 
 model StoreHistory {
   id      String  @id @default(cuid())
@@ -134,4 +181,17 @@ enum RequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
+enum PlanType {
+  FREE
+  TIER_1
+  TIER_2
+  TIER_3
+  ENTERPRISE
 }

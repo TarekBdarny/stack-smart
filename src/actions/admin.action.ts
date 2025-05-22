@@ -36,6 +36,7 @@ export const confirmStoreRequest = async (requestId: string) => {
         storeId: store?.data.id,
       },
     });
+    // send mail
     return { success: true, message: "Store created successfully" };
   } catch (error) {
     console.log("error in confirm store request", error);
@@ -56,6 +57,7 @@ export const rejectStoreRequest = async (
         description,
       },
     });
+    // send mail
     return { success: true, message: "Store request rejected successfully" };
   } catch (error) {
     console.log("error in reject store request", error);
