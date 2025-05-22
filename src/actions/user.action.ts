@@ -61,14 +61,16 @@ export const getUserByClerkId = async (clerkId: string) => {
 };
 export const getAuthUser = async () => {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) {
+    throw new Error("User is required");
+  }
   try {
     const user = await prisma.user.findUnique({
       where: {
         clerkId: userId,
       },
     });
-    if (!user) return null;
+    if (!user) throw new Error("User not found!");
     return user;
   } catch (error) {
     console.log("error in get auth user", error);

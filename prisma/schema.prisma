@@ -25,32 +25,33 @@ model User {
   assignedStore       Store?   @relation("StoreStaff", fields: [storeId], references: [id], onDelete: Cascade)
   storeRequests StoreRequest[] @relation("UserRequests")
   reviewedRequests StoreRequest[] @relation("RequestReviewer")
+
 }
 
 model StoreRequest {
   id           String        @id @default(cuid())
-  requester    User          @relation("UserRequests", fields: [requesterId], references: [id])
+
   requesterId  String
+  requester    User          @relation("UserRequests", fields: [requesterId], references: [id])
+
+  responseById String?
+  responseBy   User?         @relation("RequestReviewer", fields: [responseById], references: [id])
+  description String?
   name         String
   location     String
   workHours    String
   status       RequestStatus @default(PENDING)
 
-  responseBy    User?        @relation("RequestReviewer", fields: [responseById], references: [id])
-  responseById  String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
 
-enum RequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
+
+
 
 model Category {
   id      String    @id @default(cuid())
-  name    String
+  name    String @unique
   Product Product[]
 }
 
@@ -78,13 +79,12 @@ model OrderItem {
 
 model Product {
   id         String      @id @default(cuid())
-  name       String
+  name       String @unique
   stock      Int
   quantity   Int
   price      Float
   minStock   Int
   createdAt  DateTime    @default(now())
-  deletedAt DateTime
   storeId    String
   categoryId String
   OrderItem  OrderItem[]
@@ -98,7 +98,7 @@ model Store {
   name                     String @unique
   location                 String
   workHours                String
-  status                   Boolean
+  isOpen                   Boolean
   profit                   Float @default(0)
   Product                  Product[]
   // Owner relation:
@@ -129,4 +129,9 @@ enum UserRole {
   OWNER
   STAFF
   CUSTOMER
+}
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
