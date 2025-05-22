@@ -4,6 +4,13 @@ import { routing } from "@/i18n/routing";
 import { Metadata } from "next";
 import "../../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Poppins } from "next/font/google";
+import Navbar from "@/components/navbar/Navbar";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Smart Stack",
@@ -26,8 +33,11 @@ export default async function LocaleLayout({
   return (
     <ClerkProvider>
       <html lang={locale}>
-        <body>
-          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <body className={`${poppins.className}`}>
+          <NextIntlClientProvider>
+            <Navbar />
+            {children}
+          </NextIntlClientProvider>
         </body>
       </html>
     </ClerkProvider>

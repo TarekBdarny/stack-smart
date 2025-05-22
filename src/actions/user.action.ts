@@ -28,7 +28,50 @@ export const syncUser = async () => {
     console.log("error in sync user", error);
   }
 };
-export const getUserId = async () => {};
-export const getUserByClerkId = async () => {};
-export const getAuthUser = async () => {};
+export const getUserId = async () => {
+  const { userId } = await auth();
+  if (!userId) return;
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId: userId,
+      },
+    });
+    if (!user) return;
+    return user.id;
+  } catch (error) {
+    console.log("error in get user id", error);
+  }
+};
+export const getUserByClerkId = async (clerkId: string) => {
+  if (!clerkId) return;
+  return prisma.user.findUnique({
+    where: {
+      clerkId,
+    },
+    include: {
+      Order: true,
+      _count: {
+        select: {
+          Order: true,
+        },
+      },
+    },
+  });
+};
+export const getAuthUser = async () => {
+  const { userId } = await auth();
+  if (!userId) return null;
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId: userId,
+      },
+    });
+    if (!user) return null;
+    return user;
+  } catch (error) {
+    console.log("error in get auth user", error);
+  }
+};
 export const updateUserInfo = async () => {};

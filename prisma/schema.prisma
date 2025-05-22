@@ -7,6 +7,46 @@ datasource db {
   url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+model User {
+  id                        String   @id @default(cuid())
+  email                     String @unique
+  name                      String
+  avatar                    String
+  phoneNumber               String? @unique
+  location                  String?
+  role                      UserRole @default(CUSTOMER)
+  clerkId                   String @unique
+  createdAt                 DateTime @default(now())
+  updateAt                  DateTime @updatedAt
+  storeId                   String?
+  Order                     Order[]
+  ownedStores  Store[]  @relation("StoreOwner")
+  // If also a staff member:
+  assignedStore       Store?   @relation("StoreStaff", fields: [storeId], references: [id], onDelete: Cascade)
+  storeRequests StoreRequest[] @relation("UserRequests")
+  reviewedRequests StoreRequest[] @relation("RequestReviewer")
+}
+
+model StoreRequest {
+  id           String        @id @default(cuid())
+  requester    User          @relation("UserRequests", fields: [requesterId], references: [id])
+  requesterId  String
+  name         String
+  location     String
+  workHours    String
+  status       RequestStatus @default(PENDING)
+
+  responseBy    User?        @relation("RequestReviewer", fields: [responseById], references: [id])
+  responseById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
 model Category {
   id      String    @id @default(cuid())
@@ -20,9 +60,10 @@ model Order {
   status         OrderStatus
   customerId     String
   storeHistoryId String
-  User           User         @relation(fields: [customerId], references: [id])
+  customer           User         @relation(fields: [customerId], references: [id])
   StoreHistory   StoreHistory @relation(fields: [storeHistoryId], references: [id])
   OrderItem      OrderItem[]
+  createdAt DateTime @default(now())
 }
 
 model OrderItem {
@@ -43,6 +84,7 @@ model Product {
   price      Float
   minStock   Int
   createdAt  DateTime    @default(now())
+  deletedAt DateTime
   storeId    String
   categoryId String
   OrderItem  OrderItem[]
@@ -53,15 +95,19 @@ model Product {
 model Store {
   id                       String         @id @default(cuid())
   ownerId                  String
-  name                     String
+  name                     String @unique
   location                 String
   workHours                String
   status                   Boolean
-  profit                   Float
+  profit                   Float @default(0)
   Product                  Product[]
-  User_Store_ownerIdToUser User           @relation("Store_ownerIdToUser", fields: [ownerId], references: [id], onDelete: Cascade)
+  // Owner relation:
+
+  owner        User        @relation("StoreOwner", fields: [ownerId], references: [id])
+
+  // Staff relation:
+  staff        User[]      @relation("StoreStaff")
   StoreHistory             StoreHistory[]
-  User_User_storeIdToStore User[]         @relation("User_storeIdToStore")
 }
 
 model StoreHistory {
@@ -71,22 +117,6 @@ model StoreHistory {
   Store   Store   @relation(fields: [storeId], references: [id])
 }
 
-model User {
-  id                        String   @id @default(cuid())
-  email                     String @unique
-  name                      String
-  avatar                    String
-  phoneNumber               String?
-  location                  String?
-  role                      UserRole @default(CUSTOMER)
-  clerkId                   String @unique
-  createdAt                 DateTime @default(now())
-  updateAt                  DateTime @updatedAt
-  storeId                   String?
-  Order                     Order[]
-  Store_Store_ownerIdToUser Store[]  @relation("Store_ownerIdToUser")
-  Store_User_storeIdToStore Store?   @relation("User_storeIdToStore", fields: [storeId], references: [id], onDelete: Cascade)
-}
 
 enum OrderStatus {
   PENDING
