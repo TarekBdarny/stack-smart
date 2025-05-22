@@ -69,6 +69,16 @@ export const getAuthUser = async () => {
       where: {
         clerkId: userId,
       },
+      include: {
+        subscriptions: {
+          include: {
+            plan: true,
+          },
+        },
+        assignedStore: {
+          select: {},
+        },
+      },
     });
     if (!user) throw new Error("User not found!");
     return user;

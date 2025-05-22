@@ -78,12 +78,12 @@ model StoreRequest {
 
 model Plan {
   id                    String   @id @default(cuid())
-  name                  String   @unique // "Free", "Tier 1", "Tier 2", etc.
-  type                  PlanType @unique
+  name                  String   @unique 
+  type                  PlanType @unique 
   price                 Float    // Monthly price
   maxStores             Int      // Maximum stores allowed
-  maxProductsPerStore   Int?     // Optional: limit products per store
-  maxStaffPerStore      Int?     // Optional: limit staff per store
+  maxProductsPerStore   Int     // Optional: limit products per store
+  maxStaffPerStore      Int    // Optional: limit staff per store
   features              Json?    // JSON field for additional features
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
@@ -189,9 +189,8 @@ enum PlanStatus {
   PAST_DUE
 }
 enum PlanType {
-  FREE
-  TIER_1
-  TIER_2
-  TIER_3
+  Explorer
+  Starter
+  Growth
   ENTERPRISE
 }

@@ -78,6 +78,24 @@ export const getAllRequestedStores = async () => {
     console.log("error in get all requested stores", error);
   }
 };
+export const getAllStores = async () => {
+  try {
+    const stores = await prisma.store.findMany({
+      include: {
+        _count: {
+          select: {
+            Product: true,
+            staff: true,
+          },
+        },
+      },
+    });
+    return { success: true, data: stores ? stores : [] };
+  } catch (error) {
+    console.log("error in get all stores", error);
+  }
+};
+
 //helper
 export const createStore = async (storeData: StoreData) => {
   try {
