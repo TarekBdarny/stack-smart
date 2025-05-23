@@ -51,7 +51,7 @@ model Store {
   owner                    User           @relation("StoreOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   staff                    User[]         @relation("StoreStaff")
   StoreHistory             StoreHistory[]
-  
+  Orders Order[]
   @@index([ownerId])
   @@index([isOpen])
 }
@@ -125,8 +125,10 @@ model Order {
   status         OrderStatus
   customerId     String
   storeHistoryId String
+  storeId String
   customer           User         @relation(fields: [customerId], references: [id])
   StoreHistory   StoreHistory @relation(fields: [storeHistoryId], references: [id])
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
   OrderItem      OrderItem[]
   createdAt DateTime @default(now())
 }

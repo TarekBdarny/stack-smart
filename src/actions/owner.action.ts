@@ -15,6 +15,7 @@ interface ProductInput {
   categoryName: string;
 }
 
+// real time
 export const getStoreProfits = async () => {};
 export const getStoreOrders = async () => {};
 
@@ -63,6 +64,9 @@ export const addProductToStore = async (data: ProductInput) => {
 export const getStoreById = async (storeId: string) => {
   try {
     if (!storeId) return { success: false, error: "Store id is required" };
+    const user = await getAuthUser();
+    if (!user) return { success: false, error: "User is required" };
+
     const store = await prisma.store.findUnique({
       where: {
         id: storeId,
@@ -118,6 +122,8 @@ export const getStoreById = async (storeId: string) => {
     if (!store) {
       return { success: false, error: "Store not found" };
     }
+    if (!ownsStore(user, store))
+      return { success: false, error: "Unauthorized" };
     return { success: true, data: store };
   } catch (error) {
     console.log("error in get store", error);

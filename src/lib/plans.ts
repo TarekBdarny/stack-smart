@@ -20,6 +20,7 @@ export async function canCreateStore(userId: string) {
 
   // FREE plan: maxStores = 0, so this returns false
   // TIER_1: maxStores = 1, allows 1 store
+  if (!currentPlan) return false;
   return currentStoreCount < currentPlan.maxStores;
 }
 export function hasFeature(userPlan: Plan, featurePath: string): boolean {

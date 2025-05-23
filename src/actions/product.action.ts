@@ -54,6 +54,7 @@ export const updateProduct = async (
     await prisma.product.update({
       where: {
         id: productId,
+        storeId: storeId,
       },
       data: {
         ...productData,
@@ -92,6 +93,7 @@ export const deleteProduct = async (productId: string, storeId: string) => {
     await prisma.product.delete({
       where: {
         id: productId,
+        storeId: storeId,
       },
     });
     revalidatePath(`/${store?.name}/products`);

@@ -75,9 +75,6 @@ export const getAuthUser = async () => {
             plan: true,
           },
         },
-        assignedStore: {
-          select: {},
-        },
       },
     });
     if (!user) throw new Error("User not found!");
